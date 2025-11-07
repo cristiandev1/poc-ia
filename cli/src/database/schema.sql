@@ -18,8 +18,7 @@ CREATE TABLE IF NOT EXISTS commits (
   jira_id TEXT,
   ai_tool TEXT CHECK(ai_tool IN ('copilot', 'devin', 'no-ai')),
   time_spent_minutes INTEGER, -- calculated from time between commits
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (author_email) REFERENCES developers(email)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Manual activity tracking (non-code work)
@@ -32,8 +31,7 @@ CREATE TABLE IF NOT EXISTS activities (
   ai_tool TEXT CHECK(ai_tool IN ('copilot', 'devin', 'no-ai')),
   duration_minutes INTEGER NOT NULL,
   activity_type TEXT DEFAULT 'research', -- research, debug, meeting, etc
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (author_email) REFERENCES developers(email)
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Jira tasks integration
@@ -48,8 +46,7 @@ CREATE TABLE IF NOT EXISTS jira_tasks (
   assignee_email TEXT,
   created_date DATETIME,
   completed_date DATETIME,
-  synced_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (assignee_email) REFERENCES developers(email)
+  synced_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Indexes for performance

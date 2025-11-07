@@ -40,12 +40,10 @@ export function getDatabase() {
   return new Database(DB_PATH, { readonly: true });
 }
 
-export function getMetricsSummary(): MetricsSummary[] {
+export function getMetricsSummary(developerEmail?: string): MetricsSummary[] {
   const db = getDatabase();
 
-  const result = db
-    .prepare(
-      `
+  let query = `
     SELECT
       COALESCE(c.ai_tool, a.ai_tool) as ai_tool,
       COALESCE(c.total_commits, 0) as total_commits,
@@ -59,6 +57,7 @@ export function getMetricsSummary(): MetricsSummary[] {
         AVG(time_spent_minutes) as avg_time_minutes
       FROM commits
       WHERE ai_tool IS NOT NULL
+      ${developerEmail ? 'AND author_email = ?' : ''}
       GROUP BY ai_tool
     ) c
     FULL OUTER JOIN (
@@ -68,22 +67,23 @@ export function getMetricsSummary(): MetricsSummary[] {
         SUM(duration_minutes) as total_time_minutes
       FROM activities
       WHERE ai_tool IS NOT NULL
+      ${developerEmail ? 'AND author_email = ?' : ''}
       GROUP BY ai_tool
     ) a ON c.ai_tool = a.ai_tool
-  `
-    )
-    .all() as MetricsSummary[];
+  `;
+
+  const result = developerEmail
+    ? (db.prepare(query).all(developerEmail, developerEmail) as MetricsSummary[])
+    : (db.prepare(query).all() as MetricsSummary[]);
 
   db.close();
   return result;
 }
 
-export function getTimelineData(days: number = 30): TimelineData[] {
+export function getTimelineData(days: number = 30, developerEmail?: string): TimelineData[] {
   const db = getDatabase();
 
-  const result = db
-    .prepare(
-      `
+  const query = `
     SELECT
       DATE(timestamp) as date,
       ai_tool,
@@ -92,11 +92,14 @@ export function getTimelineData(days: number = 30): TimelineData[] {
     FROM commits
     WHERE ai_tool IS NOT NULL
       AND timestamp >= datetime('now', '-${days} days')
+      ${developerEmail ? 'AND author_email = ?' : ''}
     GROUP BY DATE(timestamp), ai_tool
     ORDER BY date ASC
-  `
-    )
-    .all() as TimelineData[];
+  `;
+
+  const result = developerEmail
+    ? (db.prepare(query).all(developerEmail) as TimelineData[])
+    : (db.prepare(query).all() as TimelineData[]);
 
   db.close();
   return result;
@@ -155,22 +158,124 @@ export function getJiraComparison(): JiraComparison[] {
   return result;
 }
 
-export function getOverviewStats() {
+export function getOverviewStats(developerEmail?: string) {
   const db = getDatabase();
+
+  const whereClause = developerEmail ? `WHERE author_email = '${developerEmail}'` : '';
 
   const stats = db
     .prepare(
       `
     SELECT
-      (SELECT COUNT(*) FROM commits) as total_commits,
-      (SELECT COUNT(*) FROM activities) as total_activities,
-      (SELECT COUNT(DISTINCT author_email) FROM commits) as total_developers,
-      (SELECT COUNT(*) FROM jira_tasks) as total_jira_tasks,
-      (SELECT AVG(time_spent_minutes) FROM commits WHERE time_spent_minutes IS NOT NULL) as avg_commit_time
+      (SELECT COUNT(*) FROM commits ${whereClause}) as total_commits,
+      (SELECT COUNT(*) FROM activities ${whereClause}) as total_activities,
+      (SELECT COUNT(DISTINCT author_email) FROM commits ${whereClause}) as total_developers,
+      (SELECT COUNT(*) FROM jira_tasks ${developerEmail ? `WHERE assignee_email = '${developerEmail}'` : ''}) as total_jira_tasks,
+      (SELECT AVG(time_spent_minutes) FROM commits WHERE time_spent_minutes IS NOT NULL ${developerEmail ? `AND author_email = '${developerEmail}'` : ''}) as avg_commit_time
   `
     )
     .get() as any;
 
   db.close();
   return stats;
+}
+
+export interface CommitDetail {
+  hash: string;
+  author_email: string;
+  message: string;
+  timestamp: string;
+  commit_type: string;
+  jira_id: string;
+  ai_tool: string;
+  time_spent_minutes: number;
+}
+
+export function getRecentCommits(limit: number = 20, developerEmail?: string): CommitDetail[] {
+  const db = getDatabase();
+
+  const query = `
+    SELECT
+      hash,
+      author_email,
+      message,
+      timestamp,
+      commit_type,
+      jira_id,
+      ai_tool,
+      time_spent_minutes
+    FROM commits
+    ${developerEmail ? 'WHERE author_email = ?' : ''}
+    ORDER BY timestamp DESC
+    LIMIT ?
+  `;
+
+  const result = developerEmail
+    ? (db.prepare(query).all(developerEmail, limit) as CommitDetail[])
+    : (db.prepare(query).all(limit) as CommitDetail[]);
+
+  db.close();
+  return result;
+}
+
+export interface JiraTaskDetail {
+  key: string;
+  title: string;
+  estimate_hours: number;
+  time_logged_hours: number;
+  status: string;
+  sprint: string;
+  assignee_email: string;
+  created_date: string;
+  completed_date: string;
+}
+
+export function getJiraTasks(developerEmail?: string): JiraTaskDetail[] {
+  const db = getDatabase();
+
+  const query = `
+    SELECT
+      key,
+      title,
+      estimate_hours,
+      time_logged_hours,
+      status,
+      sprint,
+      assignee_email,
+      created_date,
+      completed_date
+    FROM jira_tasks
+    ${developerEmail ? 'WHERE assignee_email = ?' : ''}
+    ORDER BY created_date DESC
+  `;
+
+  const result = developerEmail
+    ? (db.prepare(query).all(developerEmail) as JiraTaskDetail[])
+    : (db.prepare(query).all() as JiraTaskDetail[]);
+
+  db.close();
+  return result;
+}
+
+export interface Developer {
+  email: string;
+  name: string;
+  group_type: string;
+}
+
+export function getAllDevelopers(): Developer[] {
+  const db = getDatabase();
+
+  const result = db
+    .prepare(
+      `
+    SELECT email, name, group_type
+    FROM developers
+    ORDER BY name ASC
+  `
+    )
+    .all() as Developer[];
+
+  db.close();
+  return result;
 }
