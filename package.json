@@ -1,0 +1,21 @@
+{
+  "name": "ai-impact-metrics",
+  "version": "1.0.0",
+  "private": true,
+  "description": "POC para medir impacto da IA na produtividade do time",
+  "workspaces": [
+    "cli",
+    "dashboard"
+  ],
+  "scripts": {
+    "analyze": "npm run start --workspace=cli -- analyze",
+    "track": "npm run start --workspace=cli -- track",
+    "sync-jira": "npm run start --workspace=cli -- sync-jira",
+    "dashboard": "npm run dev --workspace=dashboard",
+    "build": "npm run build --workspaces",
+    "dev:cli": "npm run dev --workspace=cli"
+  },
+  "keywords": ["ai", "metrics", "productivity", "dashboard"],
+  "author": "",
+  "license": "MIT"
+}
