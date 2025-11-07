@@ -69,29 +69,33 @@ Exemplos:
 ## 5. Fluxo Semanal
 
 ```bash
-# Segunda-feira: análise da semana anterior
-npm run analyze -- --since "7 days ago"
-
 # Durante a semana: track atividades não-código
 npm run track
 
-# Sexta-feira: sincronize Jira e gere dashboard
-npm run sync-jira
+# Fim do dia/semana: atualizar tudo de uma vez
+npm run update-metrics
+
+# Visualizar dashboard
 npm run dashboard
+# Acesse: http://localhost:3000
 ```
 
 ## Comandos Úteis
 
 ```bash
+# Atualizar métricas (RECOMENDADO - roda analyze + sync-jira)
+npm run update-metrics
+
 # Análise filtrada
 npm run analyze -- --author "dev@banco.com"
 npm run analyze -- --since "2024-01-01"
 
-# Tracking
-npm run track
+# Script com filtros
+./update-metrics.sh --since "7 days ago"
+./update-metrics.sh --author "dev@banco.com"
 
-# Sincronização Jira
-npm run sync-jira
+# Tracking manual
+npm run track
 
 # Dashboard
 npm run dashboard

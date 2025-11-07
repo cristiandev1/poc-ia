@@ -11,6 +11,7 @@
     "analyze": "npm run start --workspace=cli -- analyze",
     "track": "npm run start --workspace=cli -- track",
     "sync-jira": "npm run start --workspace=cli -- sync-jira",
+    "update-metrics": "npm run analyze && npm run sync-jira",
     "dashboard": "npm run dev --workspace=dashboard",
     "build": "npm run build --workspaces",
     "dev:cli": "npm run dev --workspace=cli"
