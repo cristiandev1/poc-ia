@@ -32,20 +32,51 @@ ai-impact-metrics/
 
 ## Instalação
 
-1. **Clone o repositório e instale dependências:**
+### Método 1: Script Automático (Recomendado)
 
 ```bash
-npm install
+# Clone o repositório
+git clone <url-do-repo>
+cd exegese-express
+
+# Execute o script de setup
+./setup.sh
 ```
 
-2. **Configure as variáveis de ambiente (opcional para Jira):**
+O script irá:
+- ✅ Instalar todas as dependências
+- ✅ Compilar a CLI
+- ✅ Instalar o comando `ai-metrics` globalmente
+- ✅ Testar a instalação
+
+### Método 2: Manual
 
 ```bash
+# 1. Instale as dependências
+npm install
+
+# 2. Build e link da CLI
+cd cli
+npm run build
+npm link
+cd ..
+
+# 3. Teste a instalação
+ai-metrics --version
+```
+
+### Configuração do Jira (Opcional)
+
+```bash
+# Configure as variáveis de ambiente
 cp .env.example .env
 # Edite .env com suas credenciais do Jira
 ```
 
 ## Uso
+
+> **💡 Dica:** Após rodar `./setup.sh` ou `npm link`, você pode usar `ai-metrics` diretamente de qualquer pasta!
+> Exemplo: `ai-metrics analyze`, `ai-metrics track`, etc.
 
 ### 1. Padrão de Commits
 
@@ -86,11 +117,15 @@ Se preferir rodar separadamente:
 Analisa o histórico de commits do repositório:
 
 ```bash
+# Usando CLI global (após setup.sh)
+ai-metrics analyze
+
+# Ou via npm
 npm run analyze
 
 # Com filtros
-npm run analyze -- --since "7 days ago"
-npm run analyze -- --author "dev@example.com"
+ai-metrics analyze --since "7 days ago"
+ai-metrics analyze --author "dev@example.com"
 ```
 
 O comando irá:
@@ -104,6 +139,10 @@ O comando irá:
 Registra atividades que não geram commits (debug, pesquisa, reuniões):
 
 ```bash
+# Usando CLI global (após setup.sh)
+ai-metrics track
+
+# Ou via npm
 npm run track
 ```
 
@@ -117,9 +156,13 @@ Você será guiado por prompts interativos para registrar:
 
 #### Sincronização com Jira
 
-Busca dados das tasks no Jira (estimativas, tempo logado, status):
+Busca dados das tasks do Jira (estimativas, tempo logado, status):
 
 ```bash
+# Usando CLI global (após setup.sh)
+ai-metrics sync-jira
+
+# Ou via npm
 npm run sync-jira
 ```
 
@@ -220,11 +263,31 @@ Cada desenvolvedor deve marcar seus commits com a ferramenta correspondente.
 - Acesso ao Jira via API oficial com tokens individuais
 - Adequado para ambientes bancários com restrições de segurança
 
+## Desinstalação
+
+Para remover a CLI instalada globalmente:
+
+```bash
+# Remover o link global
+npm unlink -g ai-metrics
+
+# Ou, se estiver na pasta do projeto
+cd cli
+npm unlink
+```
+
+Depois disso, o comando `ai-metrics` não estará mais disponível globalmente.
+
 ## Troubleshooting
+
+### Comando `ai-metrics` não encontrado
+- Verifique se rodou `npm link` dentro da pasta `cli/`
+- Ou execute o script `./setup.sh` novamente
+- Tente reabrir o terminal após instalar
 
 ### Erro: "Not a git repository"
 - Execute os comandos na raiz de um repositório git
-- Ou especifique o caminho: `cd /path/to/repo && npm run analyze`
+- Ou especifique o caminho: `cd /path/to/repo && ai-metrics analyze`
 
 ### Erro: "Jira configuration not found"
 - Certifique-se de ter criado o arquivo `.env`
@@ -234,6 +297,10 @@ Cada desenvolvedor deve marcar seus commits com a ferramenta correspondente.
 ### Database locked
 - Feche o dashboard antes de executar comandos CLI
 - Ou use `rm .ai-metrics.db` para resetar (perde dados)
+
+### CLI não atualiza após mudanças no código
+- Rode `npm run build` dentro de `cli/`
+- O `npm link` aponta para o código compilado em `dist/`
 
 ## Próximos Passos (Pós-POC)
 
