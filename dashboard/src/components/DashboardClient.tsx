@@ -6,6 +6,7 @@ import MetricsChart from './MetricsChart';
 import TimelineChart from './TimelineChart';
 import ComparisonChart from './ComparisonChart';
 import CommitsList from './CommitsList';
+import ActivitiesList from './ActivitiesList';
 import JiraTasksList from './JiraTasksList';
 
 const JIRA_URL = process.env.NEXT_PUBLIC_JIRA_URL || 'https://cristiancastrodevs.atlassian.net';
@@ -16,6 +17,7 @@ interface DashboardData {
   timeline: any[];
   devStats: any[];
   recentCommits: any[];
+  recentActivities: any[];
   jiraTasks: any[];
   developers: Array<{ email: string; name: string; group_type: string }>;
 }
@@ -192,70 +194,92 @@ export default function DashboardClient({ initialData }: { initialData: Dashboar
           )}
         </div>
 
-        {/* Jira Tasks */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-            Tasks do Jira
-          </h2>
-          <JiraTasksList tasks={data.jiraTasks} jiraUrl={JIRA_URL} />
-        </div>
+        {/* Lists Grid - 3 columns */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Jira Tasks */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+              Tasks do Jira ({data.jiraTasks.length})
+            </h2>
+            <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <JiraTasksList tasks={data.jiraTasks} jiraUrl={JIRA_URL} />
+            </div>
+          </div>
 
-        {/* Recent Commits */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-            Commits Recentes
-            <span className="text-sm font-normal text-slate-500 ml-2">
-              (Clique para copiar o hash)
-            </span>
-          </h2>
-          <CommitsList commits={data.recentCommits} jiraUrl={JIRA_URL} />
+          {/* Recent Commits */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+              Commits Recentes ({data.recentCommits.length})
+              <span className="block text-xs font-normal text-slate-500 mt-1">
+                Clique para copiar o hash
+              </span>
+            </h2>
+            <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <CommitsList commits={data.recentCommits} jiraUrl={JIRA_URL} />
+            </div>
+          </div>
+
+          {/* Recent Activities */}
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+              Atividades Manuais ({data.recentActivities.length})
+            </h2>
+            <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
+              <ActivitiesList activities={data.recentActivities} />
+            </div>
+          </div>
         </div>
 
         {/* Developer Stats Table */}
         {selectedDeveloper === 'all' && (
           <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg p-6">
             <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-4">
-              Estatísticas por Desenvolvedor
+              Estatísticas por Desenvolvedor ({data.devStats.length})
+              <span className="block text-sm font-normal text-slate-500 mt-1">
+                Clique em um desenvolvedor para filtrar
+              </span>
             </h2>
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto max-h-[500px] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
               <table className="w-full text-sm text-left">
-                <thead className="text-xs uppercase bg-slate-100 dark:bg-slate-700">
+                <thead className="text-xs uppercase bg-slate-100 dark:bg-slate-700 sticky top-0 z-10">
                   <tr>
-                    <th className="px-6 py-3">Desenvolvedor</th>
-                    <th className="px-6 py-3">Grupo</th>
-                    <th className="px-6 py-3">Commits</th>
-                    <th className="px-6 py-3">Atividades</th>
-                    <th className="px-6 py-3">Tempo Médio</th>
-                    <th className="px-6 py-3">Total de Horas</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Desenvolvedor</th>
+                    <th className="px-4 py-3 text-center">Grupo</th>
+                    <th className="px-4 py-3 text-center">Commits</th>
+                    <th className="px-4 py-3 text-center">Atividades</th>
+                    <th className="px-4 py-3 text-center">Tempo Médio</th>
+                    <th className="px-4 py-3 text-center">Total de Horas</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data.devStats.map((dev: any) => (
                     <tr
                       key={dev.email}
-                      className="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer"
+                      className="border-b dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors"
                       onClick={() => setSelectedDeveloper(dev.email)}
                     >
-                      <td className="px-6 py-4">{dev.email}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 whitespace-nowrap">{dev.email}</td>
+                      <td className="px-4 py-3 text-center">
                         <span
-                          className={`px-2 py-1 rounded text-xs font-semibold ${
+                          className={`inline-block px-2 py-1 rounded text-xs font-semibold ${
                             dev.group_type === 'copilot'
-                              ? 'bg-blue-100 text-blue-800'
+                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                               : dev.group_type === 'devin'
-                              ? 'bg-purple-100 text-purple-800'
-                              : 'bg-gray-100 text-gray-800'
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
                           }`}
                         >
                           {dev.group_type}
                         </span>
                       </td>
-                      <td className="px-6 py-4">{dev.total_commits}</td>
-                      <td className="px-6 py-4">{dev.total_activities}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3 text-center font-semibold">{dev.total_commits}</td>
+                      <td className="px-4 py-3 text-center font-semibold">{dev.total_activities}</td>
+                      <td className="px-4 py-3 text-center text-orange-600 dark:text-orange-400 font-semibold">
                         {Math.round(dev.avg_time_per_commit)}min
                       </td>
-                      <td className="px-6 py-4">{dev.total_time_hours.toFixed(1)}h</td>
+                      <td className="px-4 py-3 text-center text-green-600 dark:text-green-400 font-bold">
+                        {dev.total_time_hours.toFixed(1)}h
+                      </td>
                     </tr>
                   ))}
                 </tbody>

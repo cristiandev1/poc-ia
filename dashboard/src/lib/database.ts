@@ -279,3 +279,41 @@ export function getAllDevelopers(): Developer[] {
   db.close();
   return result;
 }
+
+export interface ActivityDetail {
+  id: number;
+  author_email: string;
+  description: string;
+  timestamp: string;
+  ai_tool: string;
+  duration_minutes: number;
+  activity_type: string;
+  research_links: string | null;
+}
+
+export function getRecentActivities(limit: number = 20, developerEmail?: string): ActivityDetail[] {
+  const db = getDatabase();
+
+  const query = `
+    SELECT
+      id,
+      author_email,
+      description,
+      timestamp,
+      ai_tool,
+      duration_minutes,
+      activity_type,
+      research_links
+    FROM activities
+    ${developerEmail ? 'WHERE author_email = ?' : ''}
+    ORDER BY timestamp DESC
+    LIMIT ?
+  `;
+
+  const result = developerEmail
+    ? (db.prepare(query).all(developerEmail, limit) as ActivityDetail[])
+    : (db.prepare(query).all(limit) as ActivityDetail[]);
+
+  db.close();
+  return result;
+}

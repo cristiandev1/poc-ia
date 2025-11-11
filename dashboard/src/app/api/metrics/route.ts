@@ -5,6 +5,7 @@ import {
   getDeveloperStats,
   getOverviewStats,
   getRecentCommits,
+  getRecentActivities,
   getJiraTasks,
   getAllDevelopers,
 } from '@/lib/database';
@@ -20,6 +21,7 @@ export async function GET(request: NextRequest) {
       timeline: getTimelineData(30, developerEmail),
       devStats: getDeveloperStats(),
       recentCommits: getRecentCommits(15, developerEmail),
+      recentActivities: getRecentActivities(15, developerEmail),
       jiraTasks: getJiraTasks(developerEmail),
       developers: getAllDevelopers(),
     };

@@ -3,8 +3,9 @@ import { getDatabase } from '../database/db';
 import chalk from 'chalk';
 import ora from 'ora';
 import * as dotenv from 'dotenv';
+import { join } from 'path';
 
-dotenv.config();
+dotenv.config({ path: join(process.cwd(), '.env') });
 
 interface JiraIssue {
   key: string;

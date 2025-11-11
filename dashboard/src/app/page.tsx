@@ -4,6 +4,7 @@ import {
   getDeveloperStats,
   getOverviewStats,
   getRecentCommits,
+  getRecentActivities,
   getJiraTasks,
   getAllDevelopers,
 } from '@/lib/database';
@@ -18,6 +19,7 @@ export default function Home() {
     timeline: getTimelineData(30),
     devStats: getDeveloperStats(),
     recentCommits: getRecentCommits(15),
+    recentActivities: getRecentActivities(15),
     jiraTasks: getJiraTasks(),
     developers: getAllDevelopers(),
   };
